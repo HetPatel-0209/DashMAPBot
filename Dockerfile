@@ -1,25 +1,27 @@
-# Use the official Python image as the base image
-FROM python:3.10-slim
+# Use an official Python runtime as a base
+FROM python:3.9-slim
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt /app/requirements.txt
-
-# Install system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Install system packages (you can add more as needed)
+RUN apt-get update && apt-get install -y \
     build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    libpq-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libffi-dev \
+    python3-dev
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Install any needed packages specified in requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the Rasa project files and Flask API files into the container
-COPY . /app
+# Copy the current directory contents into the container at /app
+COPY . .
 
+# Make port 5000 available to the world outside this container
 EXPOSE 5000
 
-# Run Rasa and Flask API simultaneously
-CMD ["sh", "-c", "flask run --host=0.0.0.0 --port=5000"]
+# Run app.py when the container launches
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
